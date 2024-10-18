@@ -1,38 +1,79 @@
 import pytest
 
-from griptape.artifacts import BaseArtifact
-
 
 class TestRestApi:
     @pytest.fixture()
-    def client(self):
+    def client(self, mocker):
         from griptape.tools import RestApiTool
+
+        mock_return_value = {"value": "foo bar"}
+
+        mock_response = mocker.Mock()
+        mock_response.status_code = 201
+        mock_response.json.return_value = mock_return_value
+        mocker.patch("requests.put", return_value=mock_response)
+
+        mock_response = mocker.Mock()
+        mock_response.status_code = 201
+        mock_response.json.return_value = mock_return_value
+        mocker.patch("requests.post", return_value=mock_response)
+
+        mock_response = mocker.Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = mock_return_value
+        mocker.patch("requests.get", return_value=mock_response)
+
+        mock_response = mocker.Mock()
+        mock_response.status_code = 204
+        mock_response.json.return_value = mock_return_value
+        mocker.patch("requests.delete", return_value=mock_response)
+
+        mock_response = mocker.Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = mock_return_value
+        mocker.patch("requests.patch", return_value=mock_response)
 
         return RestApiTool(base_url="http://www.griptape.ai", description="Griptape website.")
 
     def test_put(self, client):
-        assert isinstance(client.post({"values": {"body": {}}}), BaseArtifact)
+        response = client.put({"values": {"body": {}}})
+        assert response.value == {"value": "foo bar"}
+        assert response.meta["status_code"] == 201
 
     def test_post(self, client):
-        assert isinstance(client.post({"values": {"body": {}}}), BaseArtifact)
+        response = client.post({"values": {"body": {}}})
+        assert response.value == {"value": "foo bar"}
+        assert response.meta["status_code"] == 201
 
     def test_get_one(self, client):
-        assert isinstance(client.get({"values": {"path_params": ["1"]}}), BaseArtifact)
+        response = client.get({"values": {"path_params": ["1"]}})
+        assert response.value == {"value": "foo bar"}
+        assert response.meta["status_code"] == 200
 
     def test_get_all(self, client):
-        assert isinstance(client.get({"values": {}}), BaseArtifact)
+        response = client.get({"values": {}})
+        assert response.value == {"value": "foo bar"}
+        assert response.meta["status_code"] == 200
 
     def test_get_filtered(self, client):
-        assert isinstance(client.get({"values": {"query_params": {"limit": 10}}}), BaseArtifact)
+        response = client.get({"values": {"query_params": {"limit": 10}}})
+        assert response.value == {"value": "foo bar"}
+        assert response.meta["status_code"] == 200
 
     def test_delete_one(self, client):
-        assert isinstance(client.delete({"values": {"path_params": ["1"]}}), BaseArtifact)
+        response = client.delete({"values": {"path_params": ["1"]}})
+        assert response.value == {"value": "foo bar"}
+        assert response.meta["status_code"] == 204
 
     def test_delete_multiple(self, client):
-        assert isinstance(client.delete({"values": {"query_params": {"ids": [1, 2]}}}), BaseArtifact)
+        response = client.delete({"values": {"query_params": {"ids": [1, 2]}}})
+        assert response.value == {"value": "foo bar"}
+        assert response.meta["status_code"] == 204
 
     def test_patch(self, client):
-        assert isinstance(client.patch({"values": {"path_params": ["1"], "body": {}}}), BaseArtifact)
+        response = client.patch({"values": {"path_params": ["1"], "body": {}}})
+        assert response.value == {"value": "foo bar"}
+        assert response.meta["status_code"] == 200
 
     def test_build_url(self, client):
         url = client._build_url("https://foo.bar")

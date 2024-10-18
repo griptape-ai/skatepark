@@ -49,6 +49,118 @@ EventListener(handler=handler_fn_return_dict, event_listener_driver=driver)
 EventListener(handler=handler_fn_return_base_event, event_listener_driver=driver)
 ```
 
+### Changed `RestApiTool` fields
+
+The following fields are no longer stringified full schemas. They are now just the properties of the schema.
+
+- `RestApiTool.request_path_params_schema` (`list`)
+- `RestApiTool.request_query_params_schema` (`dict`)
+- `RestApiTool.request_body_schema` (`dict`)
+
+#### Before
+
+```python
+posts_client = RestApiTool(
+    base_url="https://jsonplaceholder.typicode.com",
+    path="posts",
+    description="Allows for creating, updating, deleting, patching, and getting posts.",
+    request_body_schema=dumps(
+        {
+            "$schema": "https://json-schema.org/draft/2019-09/schema",
+            "$id": "http://example.com/example.json",
+            "type": "object",
+            "default": {},
+            "title": "Root Schema",
+            "required": ["title", "body", "userId"],
+            "properties": {
+                "title": {
+                    "type": "string",
+                    "default": "",
+                    "title": "The title Schema",
+                },
+                "body": {
+                    "type": "string",
+                    "default": "",
+                    "title": "The body Schema",
+                },
+                "userId": {
+                    "type": "integer",
+                    "default": 0,
+                    "title": "The userId Schema",
+                },
+            },
+        }
+    ),
+    request_query_params_schema=dumps(
+        {
+            "$schema": "https://json-schema.org/draft/2019-09/schema",
+            "$id": "http://example.com/example.json",
+            "type": "object",
+            "default": {},
+            "title": "Root Schema",
+            "required": ["userId"],
+            "properties": {
+                "userId": {
+                    "type": "string",
+                    "default": "",
+                    "title": "The userId Schema",
+                },
+            },
+        }
+    ),
+    response_body_schema=dumps(
+        {
+            "$schema": "https://json-schema.org/draft/2019-09/schema",
+            "$id": "http://example.com/example.json",
+            "type": "object",
+            "default": {},
+            "title": "Root Schema",
+            "required": ["id", "title", "body", "userId"],
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "default": 0,
+                    "title": "The id Schema",
+                },
+                "title": {
+                    "type": "string",
+                    "default": "",
+                    "title": "The title Schema",
+                },
+                "body": {
+                    "type": "string",
+                    "default": "",
+                    "title": "The body Schema",
+                },
+                "userId": {
+                    "type": "integer",
+                    "default": 0,
+                    "title": "The userId Schema",
+                },
+            },
+        }
+    ),
+)
+```
+
+#### After
+
+```python
+posts_client = RestApiTool(
+    base_url="https://jsonplaceholder.typicode.com",
+    path="posts",
+    description="Allows for creating, updating, deleting, patching, and getting posts.",
+    request_body_schema={
+        "title": str,
+        "body": str,
+        "userId": int,
+    },
+    request_query_params_schema={
+        "userId": str,
+    },
+)
+```
+
 ## 0.32.X to 0.33.X
 
 ### Removed `DataframeLoader`

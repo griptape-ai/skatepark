@@ -25,6 +25,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **BREAKING**: Updated `EventListener.handler` return value behavior.
   - If `EventListener.handler` returns `None`, the event will not be published to the `event_listener_driver`.
   - If `EventListener.handler` is None, the event will be published to the `event_listener_driver` as-is.
+- **BREAKING**: `RestApiTool` now returns a `JsonArtifact` instead of a `TextArtifact`.
+- **BREAKING**: Removed `RestApiTool.response_body`, `RestApiTool.request_path_params_schema`.
+- **BREAKING**: Changed `RestApiTool` fields from `str` to `dict`:
+  - `RestApiTool.request_query_params_schema` (`dict`)
+  - `RestApiTool.request_body_schema` (`dict`)
 - Updated `EventListener.handler` return type to `Optional[BaseEvent | dict]`.
 - `BaseTask.parent_outputs` type has changed from `dict[str, str | None]` to `dict[str, BaseArtifact]`.
 - `Workflow.context["parent_outputs"]` type has changed from `dict[str, str | None]` to `dict[str, BaseArtifact]`.
@@ -45,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Structures not flushing events when not listening for `FinishStructureRunEvent`.
 - `EventListener.event_types` and the argument to `BaseEventListenerDriver.handler` being out of sync.
+- `RestApiTool` failing with native tool calling due to schemas being in schema description.
 
 ## \[0.33.1\] - 2024-10-11
 
