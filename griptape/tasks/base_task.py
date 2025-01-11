@@ -52,6 +52,14 @@ class BaseTask(FuturesExecutorMixin, SerializableMixin, RunnableMixin["BaseTask"
         return other
 
     def __attrs_post_init__(self) -> None:
+        from griptape.structures.structure import _current_structure
+
+        if self.structure is None and _current_structure is not None:
+            self.structure = _current_structure
+        for context_val in self.context.values():
+            if isinstance(context_val, BaseTask):
+                self.add_parent(context_val)
+
         if self.structure is not None:
             self.structure.add_task(self)
 
@@ -211,6 +219,10 @@ class BaseTask(FuturesExecutorMixin, SerializableMixin, RunnableMixin["BaseTask"
 
     @property
     def full_context(self) -> dict[str, Any]:
+        for context_key, context_val in self.context.items():
+            if isinstance(context_val, BaseTask):
+                self.context[context_key] = context_val.output
+
         # Need to deep copy so that the serialized context doesn't contain non-serializable data
         context = deepcopy(self.context)
         if self.structure is not None:

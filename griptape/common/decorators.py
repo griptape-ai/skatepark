@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import functools
 from typing import Any, Callable, TypeVar, cast
 
 import wrapt
+
+from griptape.artifacts.base_artifact import BaseArtifact
 
 T = TypeVar("T")
 
@@ -37,3 +40,33 @@ def observable(*dargs: Any, **dkwargs: Any) -> Callable:
     else:
         # Case when decorator is used with arguments
         return decorator
+
+
+def task(**kwargs: Any) -> Any:
+    def decorator(func: Callable) -> Any:
+        from griptape.artifacts import GenericArtifact
+
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs) -> Any:
+            from griptape.tasks import BaseTask, CodeExecutionTask
+
+            def on_run(task: Any) -> Any:
+                arg_values = [arg.output.value for arg in args if isinstance(arg, BaseTask) if arg.output]
+                output = func(*arg_values)
+
+                if isinstance(output, BaseArtifact):
+                    return output
+                else:
+                    return GenericArtifact(output)
+
+            task = CodeExecutionTask(id=func.__name__, on_run=on_run)
+
+            for arg in args:
+                if isinstance(arg, BaseTask):
+                    task.add_parent(arg)
+
+            return task
+
+        return wrapper
+
+    return decorator

@@ -22,6 +22,7 @@ from griptape.utils.contextvars_utils import with_contextvars
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
+    from types import TracebackType
 
     from griptape.artifacts import BaseArtifact
     from griptape.memory.structure import BaseConversationMemory
@@ -50,6 +51,23 @@ class Structure(RuleMixin, SerializableMixin, RunnableMixin["Structure"], ABC):
     fail_fast: bool = field(default=True, kw_only=True, metadata={"serializable": True})
     _execution_args: tuple = ()
     _event_queue: Queue[BaseEvent] = field(default=Factory(lambda: Queue()), init=False)
+
+    def __enter__(self) -> Structure:
+        global _current_structure
+
+        _current_structure = self
+
+        return self
+
+    def __exit__(
+        self,
+        exc_type: Optional[type[BaseException]],
+        exc_value: Optional[BaseException],
+        exc_traceback: Optional[TracebackType],
+    ) -> None:
+        global _current_structure
+
+        _current_structure = None
 
     def __attrs_post_init__(self) -> None:
         tasks = self._tasks.copy()
