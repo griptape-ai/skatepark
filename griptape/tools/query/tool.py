@@ -32,7 +32,7 @@ class QueryTool(BaseTool, RuleMixin):
             lambda self: RagEngine(
                 response_stage=ResponseRagStage(
                     response_modules=[
-                        PromptResponseRagModule(prompt_driver=self.prompt_driver, rulesets=self.rulesets)
+                        PromptResponseRagModule(prompt_driver=self.prompt_driver, rulesets=self.all_rulesets)
                     ],
                 ),
             ),

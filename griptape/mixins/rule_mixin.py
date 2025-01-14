@@ -12,14 +12,14 @@ from griptape.rules import BaseRule, Ruleset
 class RuleMixin(SerializableMixin):
     DEFAULT_RULESET_NAME = "Default Ruleset"
 
-    _rulesets: list[Ruleset] = field(factory=list, kw_only=True, alias="rulesets", metadata={"serializable": True})
-    rules: list[BaseRule] = field(factory=list, kw_only=True)
+    rulesets: list[Ruleset] = field(factory=list, kw_only=True, metadata={"serializable": True})
+    rules: list[BaseRule] = field(factory=list, kw_only=True, metadata={"serializable": True})
     _default_ruleset_name: str = field(default=Factory(lambda: RuleMixin.DEFAULT_RULESET_NAME), kw_only=True)
     _default_ruleset_id: str = field(default=Factory(lambda: uuid.uuid4().hex), kw_only=True)
 
     @property
-    def rulesets(self) -> list[Ruleset]:
-        rulesets = self._rulesets.copy()
+    def all_rulesets(self) -> list[Ruleset]:
+        rulesets = self.rulesets.copy()
 
         if self.rules:
             rulesets.append(Ruleset(id=self._default_ruleset_id, name=self._default_ruleset_name, rules=self.rules))

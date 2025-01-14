@@ -15,21 +15,22 @@ class TestRuleMixin:
         assert mixin.rules == [rule]
 
     def test_rulesets(self):
-        ruleset = Ruleset("foo", [Rule("bar")])
-        mixin = RuleMixin(rulesets=[ruleset])
+        ruleset1 = Ruleset("foo", [Rule("bar")])
+        mixin = RuleMixin(rulesets=[ruleset1])
 
-        assert mixin.rulesets == [ruleset]
-        mixin.rulesets.append(Ruleset("baz", [Rule("qux")]))
-        assert mixin.rulesets == [ruleset]
+        assert mixin.rulesets == [ruleset1]
+        ruleset2 = Ruleset("baz", [Rule("qux")])
+        mixin.rulesets.append(ruleset2)
+        assert mixin.rulesets == [ruleset1, ruleset2]
 
     def test_rules_and_rulesets(self):
         mixin = RuleMixin(rules=[Rule("foo")], rulesets=[Ruleset("bar", [Rule("baz")])])
 
         assert mixin.rules == [Rule("foo")]
-        assert mixin.rulesets[0].name == "bar"
-        assert mixin.rulesets[0].rules == [Rule("baz")]
-        assert mixin.rulesets[1].name == "Default Ruleset"
-        assert mixin.rulesets[1].rules == [Rule("foo")]
+        assert mixin.all_rulesets[0].name == "bar"
+        assert mixin.all_rulesets[0].rules == [Rule("baz")]
+        assert mixin.all_rulesets[1].name == "Default Ruleset"
+        assert mixin.all_rulesets[1].rules == [Rule("foo")]
 
     def test_inherits_structure_rulesets(self):
         # Tests that a task using the mixin inherits rulesets from its structure.
@@ -40,7 +41,7 @@ class TestRuleMixin:
         task = PromptTask(rulesets=[ruleset2])
         agent.add_task(task)
 
-        assert task.rulesets == [ruleset1, ruleset2]
+        assert task.all_rulesets == [ruleset1, ruleset2]
 
     def test_to_dict(self):
         mixin = RuleMixin(
@@ -60,29 +61,23 @@ class TestRuleMixin:
         )
 
         assert mixin.to_dict() == {
+            "rules": [
+                {"type": "Rule", "value": "foo"},
+                {
+                    "type": "JsonSchemaRule",
+                    "value": {
+                        "properties": {"foo": {"type": "string"}},
+                        "required": ["foo"],
+                        "type": "object",
+                    },
+                },
+            ],
             "rulesets": [
                 {
-                    "id": mixin.rulesets[0].id,
+                    "id": mixin.all_rulesets[0].id,
                     "meta": {},
                     "name": "bar",
                     "rules": [{"type": "Rule", "value": "baz"}],
-                    "type": "Ruleset",
-                },
-                {
-                    "name": "Default Ruleset",
-                    "id": mixin.rulesets[1].id,
-                    "meta": {},
-                    "rules": [
-                        {"type": "Rule", "value": "foo"},
-                        {
-                            "type": "JsonSchemaRule",
-                            "value": {
-                                "properties": {"foo": {"type": "string"}},
-                                "required": ["foo"],
-                                "type": "object",
-                            },
-                        },
-                    ],
                     "type": "Ruleset",
                 },
             ],

@@ -32,8 +32,8 @@ class TestPipeline:
 
         assert pipeline.input_task is None
         assert pipeline.output_task is None
-        assert pipeline.rulesets[0].name == "TestRuleset"
-        assert pipeline.rulesets[0].rules[0].value == "test"
+        assert pipeline.all_rulesets[0].name == "TestRuleset"
+        assert pipeline.all_rulesets[0].rules[0].value == "test"
         assert pipeline.conversation_memory is not None
 
     def test_rulesets(self):
@@ -45,14 +45,14 @@ class TestPipeline:
         )
 
         assert isinstance(pipeline.tasks[0], PromptTask)
-        assert len(pipeline.tasks[0].rulesets) == 2
-        assert pipeline.tasks[0].rulesets[0].name == "Foo"
-        assert pipeline.tasks[0].rulesets[1].name == "Bar"
+        assert len(pipeline.tasks[0].all_rulesets) == 2
+        assert pipeline.tasks[0].all_rulesets[0].name == "Foo"
+        assert pipeline.tasks[0].all_rulesets[1].name == "Bar"
 
         assert isinstance(pipeline.tasks[1], PromptTask)
-        assert len(pipeline.tasks[1].rulesets) == 2
-        assert pipeline.tasks[1].rulesets[0].name == "Foo"
-        assert pipeline.tasks[1].rulesets[1].name == "Baz"
+        assert len(pipeline.tasks[1].all_rulesets) == 2
+        assert pipeline.tasks[1].all_rulesets[0].name == "Foo"
+        assert pipeline.tasks[1].all_rulesets[1].name == "Baz"
 
     def test_rules(self):
         pipeline = Pipeline(rules=[Rule("foo test")])
@@ -60,23 +60,24 @@ class TestPipeline:
         pipeline.add_tasks(PromptTask(rules=[Rule("bar test")]), PromptTask(rules=[Rule("baz test")]))
 
         assert isinstance(pipeline.tasks[0], PromptTask)
-        assert len(pipeline.tasks[0].rulesets) == 1
-        assert pipeline.tasks[0].rulesets[0].name == "Default Ruleset"
-        assert len(pipeline.tasks[0].rulesets[0].rules) == 2
+        assert len(pipeline.tasks[0].all_rulesets) == 1
+        assert pipeline.tasks[0].all_rulesets[0].name == "Default Ruleset"
+        assert len(pipeline.tasks[0].all_rulesets[0].rules) == 2
 
         assert isinstance(pipeline.tasks[1], PromptTask)
-        assert pipeline.tasks[1].rulesets[0].name == "Default Ruleset"
-        assert len(pipeline.tasks[1].rulesets[0].rules) == 2
+        assert pipeline.tasks[1].all_rulesets[0].name == "Default Ruleset"
+        assert len(pipeline.tasks[1].all_rulesets[0].rules) == 2
 
     def test_rules_and_rulesets(self):
         pipeline = Pipeline(rules=[Rule("foo test")], rulesets=[Ruleset("Bar", [Rule("bar test")])])
-        assert len(pipeline.rulesets) == 2
+        assert len(pipeline.all_rulesets) == 2
+        assert len(pipeline.rulesets) == 1
         assert len(pipeline.rules) == 1
 
         pipeline = Pipeline()
         pipeline.add_task(PromptTask(rules=[Rule("foo test")], rulesets=[Ruleset("Bar", [Rule("bar test")])]))
         assert isinstance(pipeline.tasks[0], PromptTask)
-        assert len(pipeline.tasks[0].rulesets) == 2
+        assert len(pipeline.tasks[0].all_rulesets) == 2
         assert len(pipeline.tasks[0].rules) == 1
 
     def test_with_no_task_memory(self):

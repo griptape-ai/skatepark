@@ -56,8 +56,8 @@ class PromptResponseRagModule(BaseResponseRagModule, RuleMixin):
     def default_generate_system_template(self, context: RagContext, artifacts: list[TextArtifact]) -> str:
         params: dict[str, Any] = {"text_chunks": [c.to_text() for c in artifacts]}
 
-        if len(self.rulesets) > 0:
-            params["rulesets"] = J2("rulesets/rulesets.j2").render(rulesets=self.rulesets)
+        if len(self.all_rulesets) > 0:
+            params["rulesets"] = J2("rulesets/rulesets.j2").render(rulesets=self.all_rulesets)
 
         if self.metadata is not None:
             params["metadata"] = J2("engines/rag/modules/response/metadata/system.j2").render(metadata=self.metadata)

@@ -251,6 +251,7 @@ class TestToolTask:
             "max_meta_memory_entries": task.max_meta_memory_entries,
             "context": task.context,
             "rulesets": [],
+            "rules": [],
             "prompt_driver": {
                 "extra_params": {},
                 "max_tokens": None,

@@ -74,6 +74,7 @@ class TestStructure:
                     "max_meta_memory_entries": agent.tasks[0].max_meta_memory_entries,
                     "context": agent.tasks[0].context,
                     "rulesets": [],
+                    "rules": [],
                     "max_subtasks": 20,
                     "tools": [],
                     "prompt_driver": {
@@ -88,6 +89,7 @@ class TestStructure:
                 }
             ],
             "rulesets": [],
+            "rules": [],
             "conversation_memory": {
                 "type": agent.conversation_memory.type,
                 "runs": agent.conversation_memory.runs,

@@ -52,4 +52,4 @@ class PromptSummaryTool(BaseTool, RuleMixin):
             else:
                 return ErrorArtifact("memory not found")
 
-        return self.prompt_summary_engine.summarize_artifacts(artifacts, rulesets=self.rulesets)
+        return self.prompt_summary_engine.summarize_artifacts(artifacts, rulesets=self.all_rulesets)

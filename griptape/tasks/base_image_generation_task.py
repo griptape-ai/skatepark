@@ -59,7 +59,7 @@ class BaseImageGenerationTask(ArtifactFileOutputMixin, RuleMixin, BaseTask, ABC)
         return ImageLoader().load(Path(path))
 
     def _get_prompts(self, prompt: str) -> list[str]:
-        return [prompt, *[rule.value for ruleset in self.rulesets for rule in ruleset.rules]]
+        return [prompt, *[rule.value for ruleset in self.all_rulesets for rule in ruleset.rules]]
 
     def _get_negative_prompts(self) -> list[str]:
         return [rule.value for ruleset in self.negative_rulesets for rule in ruleset.rules]

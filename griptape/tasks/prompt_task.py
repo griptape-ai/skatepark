@@ -65,13 +65,13 @@ class PromptTask(BaseTask, RuleMixin, ActionsSubtaskOriginMixin):
     response_stop_sequence: str = field(default=RESPONSE_STOP_SEQUENCE, kw_only=True)
 
     @property
-    def rulesets(self) -> list:
+    def all_rulesets(self) -> list:
         default_rules = self.rules
-        rulesets = self._rulesets.copy()
+        rulesets = self.rulesets.copy()
 
         if self.structure is not None:
-            if self.structure._rulesets:
-                rulesets = self.structure._rulesets + self._rulesets
+            if self.structure.rulesets:
+                rulesets = self.structure.rulesets + self.rulesets
             if self.structure.rules:
                 default_rules = self.structure.rules + self.rules
 
@@ -220,7 +220,7 @@ class PromptTask(BaseTask, RuleMixin, ActionsSubtaskOriginMixin):
         schema["minItems"] = 1  # The `schema` library doesn't support `minItems` so we must add it manually.
 
         return J2("tasks/prompt_task/system.j2").render(
-            rulesets=J2("rulesets/rulesets.j2").render(rulesets=self.rulesets),
+            rulesets=J2("rulesets/rulesets.j2").render(rulesets=self.all_rulesets),
             action_names=str.join(", ", [tool.name for tool in self.tools]),
             actions_schema=utils.minify_json(json.dumps(schema)),
             meta_memory=J2("memory/meta/meta_memory.j2").render(meta_memories=self.meta_memories),
