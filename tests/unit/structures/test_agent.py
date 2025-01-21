@@ -215,11 +215,13 @@ class TestAgent:
 
         agent.add_task(task)
 
-        agent.run("hello")
+        agent.run("hello", foo="bar")
 
         context = agent.context(task)
 
         assert context["structure"] == agent
+        assert context["args"] == ("hello",)
+        assert context["kwargs"] == {"foo": "bar"}
 
     def test_task_memory_defaults(self, mock_config):
         agent = Agent()

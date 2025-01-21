@@ -40,6 +40,16 @@ class BaseTask(FuturesExecutorMixin, SerializableMixin, RunnableMixin["BaseTask"
 
     output: Optional[BaseArtifact] = field(default=None, init=False)
     context: dict[str, Any] = field(factory=dict, kw_only=True, metadata={"serializable": True})
+    _execution_args: tuple = field(factory=tuple, init=False)
+    _execution_kwargs: dict[str, Any] = field(factory=dict, init=False)
+
+    @property
+    def execution_args(self) -> tuple:
+        return self._execution_args
+
+    @property
+    def execution_kwargs(self) -> dict:
+        return self._execution_kwargs
 
     def __rshift__(self, other: BaseTask | list[BaseTask]) -> BaseTask | list[BaseTask]:
         if isinstance(other, list):
@@ -160,8 +170,11 @@ class BaseTask(FuturesExecutorMixin, SerializableMixin, RunnableMixin["BaseTask"
                 ),
             )
 
-    def run(self) -> BaseArtifact:
+    def run(self, *args, **kwargs) -> BaseArtifact:
         try:
+            self._execution_args = args
+            self._execution_kwargs = kwargs
+
             self.state = BaseTask.State.RUNNING
 
             self.before_run()
@@ -209,6 +222,8 @@ class BaseTask(FuturesExecutorMixin, SerializableMixin, RunnableMixin["BaseTask"
     def reset(self) -> BaseTask:
         self.state = BaseTask.State.PENDING
         self.output = None
+        self._execution_args = ()
+        self._execution_kwargs = {}
 
         return self
 
@@ -219,7 +234,9 @@ class BaseTask(FuturesExecutorMixin, SerializableMixin, RunnableMixin["BaseTask"
     def full_context(self) -> dict[str, Any]:
         # Need to deep copy so that the serialized context doesn't contain non-serializable data
         context = deepcopy(self.context)
-        if self.structure is not None:
+        if self.structure is None:
+            context.update({"args": self._execution_args, "kwargs": self._execution_kwargs})
+        else:
             context.update(self.structure.context(self))
 
         return context
