@@ -6,6 +6,7 @@ from attrs import define, field
 
 from griptape.artifacts import (
     ActionArtifact,
+    AudioArtifact,
     BaseArtifact,
     GenericArtifact,
     ImageArtifact,
@@ -15,6 +16,7 @@ from griptape.artifacts import (
 from griptape.common import (
     ActionCallMessageContent,
     ActionResultMessageContent,
+    AudioMessageContent,
     BaseMessageContent,
     GenericMessageContent,
     ImageMessageContent,
@@ -77,6 +79,8 @@ class PromptStack(SerializableMixin):
             return [TextMessageContent(artifact)]
         elif isinstance(artifact, ImageArtifact):
             return [ImageMessageContent(artifact)]
+        elif isinstance(artifact, AudioArtifact):
+            return [AudioMessageContent(artifact)]
         elif isinstance(artifact, GenericArtifact):
             return [GenericMessageContent(artifact)]
         elif isinstance(artifact, ActionArtifact):

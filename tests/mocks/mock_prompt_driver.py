@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+import base64
 import json
+import time
 from typing import TYPE_CHECKING, Callable, Union
 
-from attrs import define, field
+from attrs import Factory, define, field
 
 from griptape.artifacts import TextArtifact
 from griptape.artifacts.action_artifact import ActionArtifact
+from griptape.artifacts.audio_artifact import AudioArtifact
 from griptape.common import (
     ActionCallDeltaMessageContent,
     ActionCallMessageContent,
@@ -19,6 +22,7 @@ from griptape.common import (
 )
 from griptape.drivers.prompt import BasePromptDriver
 from tests.mocks.mock_tokenizer import MockTokenizer
+from tests.unit.common.contents.test_audio_message_content import AudioDeltaMessageContent, AudioMessageContent
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -33,6 +37,7 @@ class MockPromptDriver(BasePromptDriver):
     mock_input: Union[str, Callable[[], str]] = field(default="mock input", kw_only=True)
     mock_output: Union[str, Callable[[PromptStack], str]] = field(default="mock output", kw_only=True)
     mock_structured_output: Union[dict, Callable[[PromptStack], dict]] = field(factory=dict, kw_only=True)
+    modalities: list[str] = field(default=Factory(lambda: ["text"]), kw_only=True)
 
     def try_run(self, prompt_stack: PromptStack) -> Message:
         output = self.mock_output(prompt_stack) if isinstance(self.mock_output, Callable) else self.mock_output
@@ -76,8 +81,14 @@ class MockPromptDriver(BasePromptDriver):
                     usage=Message.Usage(input_tokens=100, output_tokens=100),
                 )
             else:
+                content = []
+                if "text" in self.modalities:
+                    content.append(TextMessageContent(TextArtifact(output)))
+                if "audio" in self.modalities:
+                    content.append(AudioMessageContent(AudioArtifact(b"mock-audio", format="wav")))
+
                 return Message(
-                    content=[TextMessageContent(TextArtifact(output))],
+                    content=content,
                     role=Message.ASSISTANT_ROLE,
                     usage=Message.Usage(input_tokens=100, output_tokens=100),
                 )
@@ -125,4 +136,14 @@ class MockPromptDriver(BasePromptDriver):
                     usage=Message.Usage(input_tokens=100, output_tokens=100),
                 )
             else:
-                yield DeltaMessage(content=TextDeltaMessageContent(output))
+                if "text" in self.modalities:
+                    yield DeltaMessage(content=TextDeltaMessageContent(output))
+                if "audio" in self.modalities:
+                    yield DeltaMessage(
+                        content=AudioDeltaMessageContent(
+                            id="mock-audio",
+                            data=base64.b64encode(b"mock-audio-data").decode(),
+                            transcript="mock-transcript",
+                            expires_at=int(time.time()),
+                        )
+                    )

@@ -12,6 +12,7 @@ from .start_structure_run_event import StartStructureRunEvent
 from .finish_structure_run_event import FinishStructureRunEvent
 from .base_chunk_event import BaseChunkEvent
 from .text_chunk_event import TextChunkEvent
+from .audio_chunk_event import AudioChunkEvent
 from .action_chunk_event import ActionChunkEvent
 from .event_listener import EventListener
 from .start_image_generation_event import StartImageGenerationEvent
@@ -41,6 +42,7 @@ __all__ = [
     "FinishStructureRunEvent",
     "BaseChunkEvent",
     "TextChunkEvent",
+    "AudioChunkEvent",
     "ActionChunkEvent",
     "EventListener",
     "StartImageGenerationEvent",

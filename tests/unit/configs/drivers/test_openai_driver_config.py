@@ -27,6 +27,8 @@ class TestOpenAiDriversConfig:
                 "max_tokens": None,
                 "stream": False,
                 "user": "",
+                "audio": {"format": "pcm16", "voice": "alloy"},
+                "modalities": ["text"],
                 "use_native_tools": True,
                 "structured_output_strategy": "native",
                 "extra_params": {},
