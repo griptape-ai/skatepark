@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Provider-specific Driver namespaces (e.g., `griptape.drivers.prompt.openai`, `griptape.drivers.embedding.cohere`).
 - Tool streaming support to `OllamaPromptDriver`.
 - `DateTimeTool.add_timedelta` and `DateTimeTool.get_datetime_diff` for basic datetime arithmetic.
+- Support for `pydantic.BaseModel`s anywhere `schema.Schema` is supported.
 
 ### Changed
 

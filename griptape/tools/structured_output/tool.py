@@ -1,14 +1,21 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Union
+
 from attrs import define, field
-from schema import Schema
 
 from griptape.artifacts import BaseArtifact, JsonArtifact
 from griptape.tools import BaseTool
 from griptape.utils.decorators import activity
 
+if TYPE_CHECKING:
+    from pydantic import BaseModel
+    from schema import Schema
+
 
 @define
 class StructuredOutputTool(BaseTool):
-    output_schema: Schema = field(kw_only=True)
+    output_schema: Union[Schema, type[BaseModel]] = field(kw_only=True)
 
     @activity(
         config={

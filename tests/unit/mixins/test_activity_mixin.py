@@ -1,7 +1,13 @@
 import pytest
+from pydantic import BaseModel
 from schema import Literal, Optional, Schema
 
 from tests.mocks.mock_tool.tool import MockTool
+from tests.mocks.mock_tool_pydantic.tool import MockToolPydantic
+
+
+class OutputSchema(BaseModel):
+    foo: str
 
 
 class TestActivityMixin:
@@ -122,3 +128,57 @@ class TestActivityMixin:
             "additionalProperties": False,
             "type": "object",
         }
+
+    @pytest.mark.parametrize(
+        ("tool", "expected_output"),
+        [
+            (
+                MockTool(),
+                {
+                    "$id": "InputSchema",
+                    "$schema": "http://json-schema.org/draft-07/schema#",
+                    "properties": {
+                        "values": {
+                            "description": "Test input",
+                            "properties": {"test": {"type": "string"}},
+                            "required": ["test"],
+                            "additionalProperties": False,
+                            "type": "object",
+                        }
+                    },
+                    "required": ["values"],
+                    "additionalProperties": False,
+                    "type": "object",
+                },
+            ),
+            (
+                MockToolPydantic(),
+                {
+                    "$id": "InputSchema",
+                    "$schema": "http://json-schema.org/draft-07/schema#",
+                    "additionalProperties": False,
+                    "properties": {
+                        "values": {
+                            "additionalProperties": False,
+                            "properties": {
+                                "foo": {
+                                    "description": "Test input",
+                                    "title": "Foo",
+                                    "type": "string",
+                                },
+                            },
+                            "required": ["foo"],
+                            "title": "TestModel",
+                            "type": "object",
+                        },
+                    },
+                    "title": "TestModel",
+                    "type": "object",
+                },
+            ),
+        ],
+    )
+    @pytest.mark.parametrize("activity_name", ["test", "test_callable_schema"])
+    def test_to_activity_json_schema(self, tool, activity_name, expected_output):
+        json_schema = tool.to_activity_json_schema(getattr(tool, activity_name), "InputSchema")
+        assert json_schema == expected_output

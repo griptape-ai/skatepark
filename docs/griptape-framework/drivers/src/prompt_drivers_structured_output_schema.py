@@ -1,7 +1,6 @@
 import schema
 from rich.pretty import pprint
 
-from griptape.drivers.prompt.openai import OpenAiChatPromptDriver
 from griptape.rules import Rule
 from griptape.structures import Pipeline
 from griptape.tasks import PromptTask
@@ -9,10 +8,6 @@ from griptape.tasks import PromptTask
 pipeline = Pipeline(
     tasks=[
         PromptTask(
-            prompt_driver=OpenAiChatPromptDriver(
-                model="gpt-4o",
-                structured_output_strategy="native",  # optional
-            ),
             output_schema=schema.Schema(
                 {
                     "steps": [schema.Schema({"explanation": str, "output": str})],
@@ -29,4 +24,5 @@ pipeline = Pipeline(
 output = pipeline.run("How can I solve 8x + 7 = -23").output.value
 
 
-pprint(output)
+pprint(output)  # dict
+pprint(output["steps"])

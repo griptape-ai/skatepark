@@ -1,8 +1,10 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Union
 
 from attrs import define, field
+from pydantic import BaseModel
+from schema import Schema
 
 from griptape.artifacts import (
     ActionArtifact,
@@ -22,10 +24,9 @@ from griptape.common import (
     TextMessageContent,
 )
 from griptape.mixins.serializable_mixin import SerializableMixin
+from griptape.utils.json_schema_utils import build_strict_schema
 
 if TYPE_CHECKING:
-    from schema import Schema
-
     from griptape.tools import BaseTool
 
 
@@ -33,7 +34,7 @@ if TYPE_CHECKING:
 class PromptStack(SerializableMixin):
     messages: list[Message] = field(factory=list, kw_only=True, metadata={"serializable": True})
     tools: list[BaseTool] = field(factory=list, kw_only=True)
-    output_schema: Optional[Schema] = field(default=None, kw_only=True)
+    output_schema: Optional[Union[Schema, type[BaseModel]]] = field(default=None, kw_only=True)
 
     @property
     def system_messages(self) -> list[Message]:
@@ -62,6 +63,19 @@ class PromptStack(SerializableMixin):
 
     def add_assistant_message(self, artifact: str | BaseArtifact) -> Message:
         return self.add_message(artifact, Message.ASSISTANT_ROLE)
+
+    def to_output_json_schema(self, schema_id: str = "Output Format") -> dict:
+        if self.output_schema is None:
+            raise ValueError("Output schema is not set")
+
+        if isinstance(self.output_schema, Schema):
+            json_schema = self.output_schema.json_schema(schema_id)
+        elif isinstance(self.output_schema, type) and issubclass(self.output_schema, BaseModel):
+            json_schema = build_strict_schema(self.output_schema.model_json_schema(), schema_id)
+        else:
+            raise ValueError(f"Unsupported output schema type: {type(self.output_schema)}")
+
+        return json_schema
 
     @classmethod
     def from_artifact(cls, artifact: BaseArtifact) -> PromptStack:

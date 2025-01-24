@@ -27,6 +27,7 @@ numpy = ">=1.26.4,<3"
 requests = "^2.32.0"
 filetype = "^1.2"
 urllib3 = ">=1.25.4,!=2.2.0,<3" # Version constraint required for botocore https://github.com/boto/botocore/pull/3141
+pydantic = "^2.10.6"
 
 # drivers
 cohere = { version = "^5.11.2", optional = true }
@@ -320,6 +321,9 @@ fixture-parentheses = true
 
 [tool.ruff.lint.flake8-tidy-imports.banned-api]
 "attr".msg = "The attr module is deprecated, use attrs instead."
+
+[tool.ruff.lint.flake8-type-checking]
+runtime-evaluated-base-classes = ["pydantic.BaseModel"]
 
 [tool.pyright]
 venvPath = "."

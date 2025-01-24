@@ -14,7 +14,7 @@ from tests.mocks.mock_tool.tool import MockTool
 
 class TestCoherePromptDriver:
     COHERE_STRUCTURED_OUTPUT_SCHEMA = {
-        "$id": "Output",
+        "$id": "Output Format",
         "$schema": "http://json-schema.org/draft-07/schema#",
         "additionalProperties": False,
         "properties": {"foo": {"type": "string"}},

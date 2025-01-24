@@ -124,7 +124,7 @@ class HuggingFaceHubPromptDriver(BasePromptDriver):
 
         if prompt_stack.output_schema and self.structured_output_strategy == "native":
             # https://huggingface.co/learn/cookbook/en/structured_generation#-constrained-decoding
-            output_schema = prompt_stack.output_schema.json_schema("Output Schema")
+            output_schema = prompt_stack.to_output_json_schema()
             # Grammar does not support $schema and $id
             del output_schema["$schema"]
             del output_schema["$id"]

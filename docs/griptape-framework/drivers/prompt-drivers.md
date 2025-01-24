@@ -45,9 +45,19 @@ You can change _how_ the output is structured by setting the Driver's [structure
 - `tool`: The Driver will add a special tool, [StructuredOutputTool](../../reference/griptape/tools/structured_output/tool.md), and will try to force the LLM to use the Tool.
 - `rule`: The Driver will add a [JsonSchemaRule](../structures/rulesets.md#json-schema-rule) to the Task's system prompt. This strategy does not guarantee that the LLM will output JSON and should only be used as a last resort.
 
-```python
---8<-- "docs/griptape-framework/drivers/src/prompt_drivers_structured_output.py"
-```
+You can specify `output_schema` using either `pydantic` or `schema` libraries, though `pydantic` is recommended.
+
+=== "Pydantic"
+
+    ```python
+    --8<-- "docs/griptape-framework/drivers/src/prompt_drivers_structured_output_pydantic.py"
+    ```
+
+=== "Schema"
+
+    ```python
+    --8<-- "docs/griptape-framework/drivers/src/prompt_drivers_structured_output_schema.py"
+    ```
 
 ## Prompt Drivers
 

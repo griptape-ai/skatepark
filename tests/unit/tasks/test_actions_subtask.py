@@ -1,6 +1,8 @@
 import json
 
 import pytest
+import schema
+from pydantic import create_model
 
 from griptape.artifacts import ActionArtifact, ListArtifact, TextArtifact
 from griptape.artifacts.error_artifact import ErrorArtifact
@@ -9,6 +11,7 @@ from griptape.common import ToolAction
 from griptape.structures import Agent
 from griptape.tasks import ActionsSubtask, PromptTask, ToolkitTask
 from tests.mocks.mock_tool.tool import MockTool
+from tests.mocks.mock_tool_pydantic.tool import MockToolPydantic
 
 
 class TestActionsSubtask:
@@ -245,6 +248,56 @@ class TestActionsSubtask:
         assert isinstance(subtask.output.value[0], TextArtifact)
         assert subtask.output.value[0].value == "ack value"
 
+    @pytest.mark.parametrize(
+        "invalid_input",
+        [
+            ListArtifact(
+                [
+                    ActionArtifact(
+                        ToolAction(tag="foo", name="MockTool", path="test", input={"values": {"test1234": "value"}})
+                    ),
+                ]
+            ),
+            ListArtifact(
+                [
+                    ActionArtifact(ToolAction(tag="foo", name="MockTool", path="test", input={"values": {}})),
+                ]
+            ),
+            ListArtifact(
+                [
+                    ActionArtifact(
+                        ToolAction(
+                            tag="foo",
+                            name="MockTool",
+                            path="test",
+                            input={
+                                "values": {
+                                    "test": "value",
+                                    "extra": "extra value",
+                                }
+                            },
+                        )
+                    ),
+                ]
+            ),
+        ],
+    )
+    @pytest.mark.parametrize(
+        "tool",
+        [
+            MockTool(),
+            MockToolPydantic(name="MockTool"),
+        ],
+    )
+    def test_action_validation_error(self, invalid_input, tool):
+        task = PromptTask(tools=[tool])
+        Agent().add_task(task)
+        subtask = task.add_subtask(ActionsSubtask(invalid_input))
+        subtask.run()
+
+        assert isinstance(subtask.output, ErrorArtifact)
+        assert "Activity input JSON validation error" in subtask.output.value
+
     def test_execute_tool_exception(self):
         valid_input = TextArtifact(
             "Thought: need to test\n"
@@ -277,9 +330,14 @@ class TestActionsSubtask:
         with pytest.raises(Exception, match="ActionSubtask has no origin task."):
             assert ActionsSubtask("test").origin_task
 
-    def test_structured_output_tool(self):
-        import schema
-
+    @pytest.mark.parametrize(
+        "output_schema",
+        [
+            schema.Schema({"test": str}),
+            create_model("TestModel", test=(str, ...)),
+        ],
+    )
+    def test_structured_output_tool(self, output_schema):
         from griptape.tools.structured_output.tool import StructuredOutputTool
 
         actions = ListArtifact(
@@ -295,16 +353,21 @@ class TestActionsSubtask:
             ]
         )
 
-        task = ToolkitTask(tools=[StructuredOutputTool(output_schema=schema.Schema({"test": str}))])
+        task = ToolkitTask(tools=[StructuredOutputTool(output_schema=output_schema)])
         Agent().add_task(task)
         subtask = task.add_subtask(ActionsSubtask(actions))
 
         assert isinstance(subtask.output, JsonArtifact)
         assert subtask.output.value == {"test": "value"}
 
-    def test_structured_output_tool_multiple(self):
-        import schema
-
+    @pytest.mark.parametrize(
+        "output_schemas",
+        [
+            (schema.Schema({"test1": str}), schema.Schema({"test2": str})),
+            (create_model("TestModel1", test1=(str, ...)), create_model("TestModel2", test2=(str, ...))),
+        ],
+    )
+    def test_structured_output_tool_multiple(self, output_schemas):
         from griptape.tools.structured_output.tool import StructuredOutputTool
 
         actions = ListArtifact(
@@ -330,8 +393,8 @@ class TestActionsSubtask:
 
         task = ToolkitTask(
             tools=[
-                StructuredOutputTool(name="StructuredOutputTool1", output_schema=schema.Schema({"test": str})),
-                StructuredOutputTool(name="StructuredOutputTool2", output_schema=schema.Schema({"test": str})),
+                StructuredOutputTool(name="StructuredOutputTool1", output_schema=output_schemas[0]),
+                StructuredOutputTool(name="StructuredOutputTool2", output_schema=output_schemas[1]),
             ]
         )
         Agent().add_task(task)

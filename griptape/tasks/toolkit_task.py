@@ -8,12 +8,12 @@ from attrs import define
 from griptape.tasks import PromptTask
 
 if TYPE_CHECKING:
-    from griptape.artifacts import ErrorArtifact, JsonArtifact, ListArtifact, TextArtifact
+    from griptape.artifacts import ErrorArtifact, GenericArtifact, JsonArtifact, ListArtifact, TextArtifact
 
 
 @define
 class ToolkitTask(PromptTask):
-    def try_run(self) -> ListArtifact | TextArtifact | JsonArtifact | ErrorArtifact:
+    def try_run(self) -> ListArtifact | TextArtifact | JsonArtifact | GenericArtifact | ErrorArtifact:
         warnings.warn(
             "`ToolkitTask` is deprecated and will be removed in a future release. `PromptTask` is a drop-in replacement.",
             DeprecationWarning,

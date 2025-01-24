@@ -5,7 +5,6 @@ import logging
 from typing import TYPE_CHECKING, Optional
 
 from attrs import Attribute, Factory, define, field
-from schema import Schema
 
 from griptape.artifacts import ActionArtifact, TextArtifact
 from griptape.common import (
@@ -197,7 +196,7 @@ class GooglePromptDriver(BasePromptDriver):
         tool_declarations = []
         for tool in tools:
             for activity in tool.activities():
-                schema = (tool.activity_schema(activity) or Schema({})).json_schema("Parameters Schema")
+                schema = tool.to_activity_json_schema(activity, "Parameters Schema")
 
                 if "values" in schema["properties"]:
                     schema = schema["properties"]["values"]

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional
+from typing import Any, Callable, Optional
 
 
 def remove_null_values_in_dict_recursively(d: dict) -> dict:
@@ -13,6 +13,25 @@ def remove_null_values_in_dict_recursively(d: dict) -> dict:
 def remove_key_in_dict_recursively(d: dict, key: str) -> dict:
     if isinstance(d, dict):
         return {k: remove_key_in_dict_recursively(v, key) for k, v in d.items() if k != key}
+    else:
+        return d
+
+
+def add_key_in_dict_recursively(
+    d: Any, key: str, value: Any, criteria: Optional[Callable[[dict], bool]] = None
+) -> dict:
+    """Add a key in a dictionary recursively.
+
+    Args:
+        d: The dictionary to add the key to.
+        key: The key to add.
+        value: The value to add.
+        criteria: An optional function to determine if the key should be added.
+    """
+    if isinstance(d, dict):
+        if criteria is None or criteria(d):
+            d[key] = value
+        return {k: add_key_in_dict_recursively(v, key, value, criteria) for k, v in d.items()}
     else:
         return d
 

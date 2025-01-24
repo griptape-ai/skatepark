@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Optional
 
 import openai
 from attrs import Factory, define, field
-from schema import Schema
 
 from griptape.artifacts import ActionArtifact, TextArtifact
 from griptape.common import (
@@ -168,7 +167,7 @@ class OpenAiChatPromptDriver(BasePromptDriver):
                     "type": "json_schema",
                     "json_schema": {
                         "name": "Output",
-                        "schema": prompt_stack.output_schema.json_schema("Output"),
+                        "schema": prompt_stack.to_output_json_schema(),
                         "strict": True,
                     },
                 }
@@ -256,7 +255,7 @@ class OpenAiChatPromptDriver(BasePromptDriver):
                 "function": {
                     "name": tool.to_native_tool_name(activity),
                     "description": tool.activity_description(activity),
-                    "parameters": (tool.activity_schema(activity) or Schema({})).json_schema("Parameters Schema"),
+                    "parameters": tool.to_activity_json_schema(activity, "Parameters Schema"),
                 },
                 "type": "function",
             }

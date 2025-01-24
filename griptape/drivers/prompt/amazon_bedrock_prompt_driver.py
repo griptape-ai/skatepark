@@ -4,7 +4,6 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from attrs import Attribute, Factory, define, field
-from schema import Schema
 
 from griptape.artifacts import (
     ActionArtifact,
@@ -163,9 +162,7 @@ class AmazonBedrockPromptDriver(BasePromptDriver):
                     "name": tool.to_native_tool_name(activity),
                     "description": tool.activity_description(activity),
                     "inputSchema": {
-                        "json": (tool.activity_schema(activity) or Schema({})).json_schema(
-                            "http://json-schema.org/draft-07/schema#",
-                        ),
+                        "json": tool.to_activity_json_schema(activity, "http://json-schema.org/draft-07/schema#"),
                     },
                 },
             }
