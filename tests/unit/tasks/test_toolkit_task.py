@@ -392,6 +392,7 @@ class TestToolkitSubtask:
             "max_meta_memory_entries": 20,
             "context": {},
             "rulesets": [],
+            "rules": [],
             "prompt_driver": {
                 "extra_params": {},
                 "max_tokens": None,

@@ -21,8 +21,8 @@ class TestAgent:
         assert agent.prompt_driver is driver
         assert isinstance(agent.task, PromptTask)
         assert isinstance(agent.task, PromptTask)
-        assert agent.rulesets[0].name == "TestRuleset"
-        assert agent.rulesets[0].rules[0].value == "test"
+        assert agent.all_rulesets[0].name == "TestRuleset"
+        assert agent.all_rulesets[0].rules[0].value == "test"
         assert isinstance(agent.conversation_memory, ConversationMemory)
         assert isinstance(Agent(tools=[MockTool()]).task, PromptTask)
 
@@ -32,9 +32,9 @@ class TestAgent:
         agent.add_task(PromptTask(rulesets=[Ruleset("Bar", [Rule("bar test")])]))
 
         assert isinstance(agent.task, PromptTask)
-        assert len(agent.task.rulesets) == 2
-        assert agent.task.rulesets[0].name == "Foo"
-        assert agent.task.rulesets[1].name == "Bar"
+        assert len(agent.task.all_rulesets) == 2
+        assert agent.task.all_rulesets[0].name == "Foo"
+        assert agent.task.all_rulesets[1].name == "Bar"
 
     def test_rules(self):
         agent = Agent(rules=[Rule("foo test")])
@@ -42,21 +42,21 @@ class TestAgent:
         agent.add_task(PromptTask(rules=[Rule("bar test")]))
 
         assert isinstance(agent.task, PromptTask)
-        assert len(agent.task.rulesets) == 1
-        assert agent.task.rulesets[0].name == "Default Ruleset"
-        assert len(agent.task.rulesets[0].rules) == 2
-        assert agent.task.rulesets[0].rules[0].value == "foo test"
-        assert agent.task.rulesets[0].rules[1].value == "bar test"
+        assert len(agent.task.all_rulesets) == 1
+        assert agent.task.all_rulesets[0].name == "Default Ruleset"
+        assert len(agent.task.all_rulesets[0].rules) == 2
+        assert agent.task.all_rulesets[0].rules[0].value == "foo test"
+        assert agent.task.all_rulesets[0].rules[1].value == "bar test"
 
     def test_rules_and_rulesets(self):
         agent = Agent(rules=[Rule("foo test")], rulesets=[Ruleset("Bar", [Rule("bar test")])])
-        assert len(agent.rulesets) == 2
+        assert len(agent.all_rulesets) == 2
         assert len(agent.rules) == 1
 
         agent = Agent()
         agent.add_task(PromptTask(rules=[Rule("foo test")], rulesets=[Ruleset("Bar", [Rule("bar test")])]))
         assert isinstance(agent.task, PromptTask)
-        assert len(agent.task.rulesets) == 2
+        assert len(agent.task.all_rulesets) == 2
         assert len(agent.task.rules) == 1
 
     def test_with_task_memory(self):

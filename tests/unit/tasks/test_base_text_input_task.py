@@ -54,11 +54,11 @@ class TestBaseTextInputTask:
             rulesets=[Ruleset("Foo", [Rule("foo test")]), Ruleset("Bar", [Rule("bar test")])]
         )
 
-        assert len(prompt_task.rulesets) == 2
-        assert prompt_task.rulesets[0].name == "Foo"
-        assert prompt_task.rulesets[1].name == "Bar"
+        assert len(prompt_task.all_rulesets) == 2
+        assert prompt_task.all_rulesets[0].name == "Foo"
+        assert prompt_task.all_rulesets[1].name == "Bar"
 
     def test_rules(self):
         prompt_task = MockTextInputTask(rules=[Rule("foo test"), Rule("bar test")])
 
-        assert prompt_task.rulesets[0].name == "Default Ruleset"
+        assert prompt_task.all_rulesets[0].name == "Default Ruleset"

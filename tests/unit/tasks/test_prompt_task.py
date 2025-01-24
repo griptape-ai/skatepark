@@ -194,15 +194,15 @@ class TestPromptTask:
 
         pipeline.add_task(task)
 
-        assert len(task.rulesets) == 3
-        assert task.rulesets[0].name == "Pipeline Ruleset"
-        assert task.rulesets[1].name == "Task Ruleset"
-        assert task.rulesets[2].name == "Default Ruleset"
+        assert len(task.all_rulesets) == 3
+        assert task.all_rulesets[0].name == "Pipeline Ruleset"
+        assert task.all_rulesets[1].name == "Task Ruleset"
+        assert task.all_rulesets[2].name == "Default Ruleset"
 
-        assert len(task.rulesets[0].rules) == 0
-        assert len(task.rulesets[1].rules) == 0
-        assert task.rulesets[2].rules[0].value == "Pipeline Rule"
-        assert task.rulesets[2].rules[1].value == "Task Rule"
+        assert len(task.all_rulesets[0].rules) == 0
+        assert len(task.all_rulesets[1].rules) == 0
+        assert task.all_rulesets[2].rules[0].value == "Pipeline Rule"
+        assert task.all_rulesets[2].rules[1].value == "Task Rule"
 
     def test_conversation_memory(self):
         conversation_memory = ConversationMemory()

@@ -248,7 +248,7 @@ class StructureTester:
         task_names = [task.__class__.__name__ for task in structure.tasks]
         prompt = structure.input_task.input.to_text()
         actual = structure.output.to_text()
-        rules = [rule.value for ruleset in structure.input_task.rulesets for rule in ruleset.rules]
+        rules = [rule.value for ruleset in structure.input_task.all_rulesets for rule in ruleset.rules]
 
         agent = Agent(
             rulesets=[

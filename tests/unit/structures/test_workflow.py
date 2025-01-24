@@ -42,14 +42,14 @@ class TestWorkflow:
         )
 
         assert isinstance(workflow.tasks[0], PromptTask)
-        assert len(workflow.tasks[0].rulesets) == 2
-        assert workflow.tasks[0].rulesets[0].name == "Foo"
-        assert workflow.tasks[0].rulesets[1].name == "Bar"
+        assert len(workflow.tasks[0].all_rulesets) == 2
+        assert workflow.tasks[0].all_rulesets[0].name == "Foo"
+        assert workflow.tasks[0].all_rulesets[1].name == "Bar"
 
         assert isinstance(workflow.tasks[1], PromptTask)
-        assert len(workflow.tasks[1].rulesets) == 2
-        assert workflow.tasks[1].rulesets[0].name == "Foo"
-        assert workflow.tasks[1].rulesets[1].name == "Baz"
+        assert len(workflow.tasks[1].all_rulesets) == 2
+        assert workflow.tasks[1].all_rulesets[0].name == "Foo"
+        assert workflow.tasks[1].all_rulesets[1].name == "Baz"
 
     def test_rules(self):
         workflow = Workflow(rules=[Rule("foo test")])
@@ -57,24 +57,24 @@ class TestWorkflow:
         workflow.add_tasks(PromptTask(rules=[Rule("bar test")]), PromptTask(rules=[Rule("baz test")]))
 
         assert isinstance(workflow.tasks[0], PromptTask)
-        assert len(workflow.tasks[0].rulesets) == 1
-        assert workflow.tasks[0].rulesets[0].name == "Default Ruleset"
-        assert len(workflow.tasks[0].rulesets[0].rules) == 2
+        assert len(workflow.tasks[0].all_rulesets) == 1
+        assert workflow.tasks[0].all_rulesets[0].name == "Default Ruleset"
+        assert len(workflow.tasks[0].all_rulesets[0].rules) == 2
 
         assert isinstance(workflow.tasks[1], PromptTask)
-        assert len(workflow.tasks[1].rulesets) == 1
-        assert workflow.tasks[1].rulesets[0].name == "Default Ruleset"
-        assert len(workflow.tasks[1].rulesets[0].rules) == 2
+        assert len(workflow.tasks[1].all_rulesets) == 1
+        assert workflow.tasks[1].all_rulesets[0].name == "Default Ruleset"
+        assert len(workflow.tasks[1].all_rulesets[0].rules) == 2
 
     def test_rules_and_rulesets(self):
         workflow = Workflow(rules=[Rule("foo test")], rulesets=[Ruleset("Bar", [Rule("bar test")])])
-        assert len(workflow.rulesets) == 2
+        assert len(workflow.all_rulesets) == 2
         assert len(workflow.rules) == 1
 
         workflow = Workflow()
         workflow.add_task(PromptTask(rules=[Rule("foo test")], rulesets=[Ruleset("Bar", [Rule("bar test")])]))
         assert isinstance(workflow.tasks[0], PromptTask)
-        assert len(workflow.tasks[0].rulesets) == 2
+        assert len(workflow.tasks[0].all_rulesets) == 2
         assert len(workflow.tasks[0].rules) == 1
 
     def test_with_no_task_memory(self):
