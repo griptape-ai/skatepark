@@ -48,7 +48,8 @@ class Structure(RuleMixin, SerializableMixin, RunnableMixin["Structure"], ABC):
     )
     meta_memory: MetaMemory = field(default=Factory(lambda: MetaMemory()), kw_only=True)
     fail_fast: bool = field(default=True, kw_only=True, metadata={"serializable": True})
-    _execution_args: tuple = ()
+    _execution_args: tuple = field(factory=tuple, init=False)
+    _execution_kwargs: dict[str, Any] = field(factory=dict, init=False)
     _event_queue: Queue[BaseEvent] = field(default=Factory(lambda: Queue()), init=False)
 
     def __attrs_post_init__(self) -> None:
@@ -73,6 +74,10 @@ class Structure(RuleMixin, SerializableMixin, RunnableMixin["Structure"], ABC):
     @property
     def execution_args(self) -> tuple:
         return self._execution_args
+
+    @property
+    def execution_kwargs(self) -> dict:
+        return self._execution_kwargs
 
     @property
     def input_task(self) -> Optional[BaseTask]:
@@ -125,7 +130,7 @@ class Structure(RuleMixin, SerializableMixin, RunnableMixin["Structure"], ABC):
         return added_tasks
 
     def context(self, task: BaseTask) -> dict[str, Any]:
-        return {"args": self.execution_args, "structure": self}
+        return {"args": self.execution_args, "kwargs": self.execution_kwargs, "structure": self}
 
     def resolve_relationships(self) -> None:
         task_by_id = {}
@@ -154,7 +159,6 @@ class Structure(RuleMixin, SerializableMixin, RunnableMixin["Structure"], ABC):
     @observable
     def before_run(self, args: Any) -> None:
         super().before_run(args)
-        self._execution_args = args
 
         [task.reset() for task in self.tasks]
 
@@ -197,7 +201,9 @@ class Structure(RuleMixin, SerializableMixin, RunnableMixin["Structure"], ABC):
     def add_task(self, task: BaseTask) -> BaseTask: ...
 
     @observable
-    def run(self, *args) -> Structure:
+    def run(self, *args, **kwargs) -> Structure:
+        self._execution_args = args
+        self._execution_kwargs = kwargs
         self.before_run(args)
 
         result = self.try_run(*args)

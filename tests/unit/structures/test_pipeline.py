@@ -356,7 +356,7 @@ class TestPipeline:
 
         assert context["parent_output"] is None
 
-        pipeline.run()
+        pipeline.run("hello", foo="bar")
 
         context = pipeline.context(task)
 
@@ -365,6 +365,8 @@ class TestPipeline:
         assert context["structure"] == pipeline
         assert context["parent"] == parent
         assert context["child"] == child
+        assert context["args"] == ("hello",)
+        assert context["kwargs"] == {"foo": "bar"}
 
     def test_run_with_error_artifact(self, error_artifact_task, waiting_task):
         end_task = PromptTask("end")

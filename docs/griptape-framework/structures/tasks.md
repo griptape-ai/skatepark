@@ -13,6 +13,7 @@ Tasks that take input have a field [input](../../reference/griptape/tasks/base_t
 Within the [input](../../reference/griptape/tasks/base_text_input_task.md#griptape.tasks.base_text_input_task.BaseTextInputTask.input), you can access the following [context](../../reference/griptape/structures/structure.md#griptape.structures.structure.Structure.context) variables:
 
 - `args`: an array of arguments passed to the `.run()` method.
+- `kwargs`: an array of keyword arguments passed to the `.run()` method.
 - `structure`: the structure that the task belongs to.
 - user defined context variables
 

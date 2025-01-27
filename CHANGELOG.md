@@ -32,6 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added `DateTime.get_relative_datetime` to `DateTimeTool.denylist`. May be removed in a future release.
 - Changed log level of `ActionsSubtask` errors from `EXCEPTION` to `DEBUG`.
+- `BaseTask.run` now accepts args and kwargs which are added to the Task's context under `args` and `kwargs` keys.
+- `Structure.run` now accepts kwargs which is added to the Task's context under `kwargs` key.
 
 ### Deprecated
 
