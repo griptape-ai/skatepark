@@ -4,7 +4,7 @@ import warnings
 import pytest
 
 from griptape.artifacts import ActionArtifact, ErrorArtifact, TextArtifact
-from griptape.common import Message, PromptStack
+from griptape.common import AudioMessageContent, Message, PromptStack, TextMessageContent
 from griptape.events import FinishPromptEvent, StartPromptEvent
 from griptape.events.event_bus import _EventBus
 from griptape.structures import Pipeline
@@ -43,34 +43,25 @@ class TestBasePromptDriver:
         assert len([instance for instance in events if isinstance(instance, StartPromptEvent)]) == 1
         assert len([instance for instance in events if isinstance(instance, FinishPromptEvent)]) == 1
 
-    def test_run(self):
-        assert isinstance(MockPromptDriver().run(PromptStack(messages=[])), Message)
-        assert isinstance(MockPromptDriver().run(TextArtifact("")), Message)
+    @pytest.mark.parametrize("stream", [True, False])
+    @pytest.mark.parametrize("use_native_tools", [True, False])
+    @pytest.mark.parametrize("modalities", [["text"], ["text", "audio"]])
+    @pytest.mark.parametrize("tools", [[], [MockTool()]])
+    def test_run(self, use_native_tools, stream, modalities, tools):
+        driver = MockPromptDriver(
+            stream=stream, use_native_tools=use_native_tools, modalities=modalities, max_attempts=1
+        )
 
-    def test_run_with_stream(self):
-        result = MockPromptDriver(stream=True).run(PromptStack(messages=[]))
+        result = driver.run(PromptStack(tools=tools))
+
         assert isinstance(result, Message)
-        assert result.value == "mock output"
-
-    def test_run_with_tools(self, mock_config):
-        mock_config.drivers_config.prompt_driver = MockPromptDriver(max_attempts=1, use_native_tools=True)
-        pipeline = Pipeline()
-
-        pipeline.add_task(PromptTask(tools=[MockTool()]))
-
-        output = pipeline.run().output_task.output
-        assert isinstance(output, TextArtifact)
-        assert output.value == "mock output"
-
-    def test_run_with_tools_and_stream(self, mock_config):
-        mock_config.driver = MockPromptDriver(max_attempts=1, stream=True, use_native_tools=True)
-        pipeline = Pipeline()
-
-        pipeline.add_task(PromptTask(tools=[MockTool()]))
-
-        output = pipeline.run().output_task.output
-        assert isinstance(output, TextArtifact)
-        assert output.value == "mock output"
+        if use_native_tools and tools:
+            assert result.value.input == {"values": {"test": "test-value"}}
+        else:
+            if "text" in modalities:
+                assert result.has_any_content_type(TextMessageContent)
+            if "audio" in modalities:
+                assert result.has_any_content_type(AudioMessageContent)
 
     def test_native_structured_output_strategy(self):
         from schema import Schema

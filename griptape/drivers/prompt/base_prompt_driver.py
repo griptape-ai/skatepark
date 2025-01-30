@@ -9,6 +9,8 @@ from griptape.artifacts import BaseArtifact, TextArtifact
 from griptape.common import (
     ActionCallDeltaMessageContent,
     ActionCallMessageContent,
+    AudioDeltaMessageContent,
+    AudioMessageContent,
     BaseDeltaMessageContent,
     DeltaMessage,
     Message,
@@ -19,6 +21,7 @@ from griptape.common import (
 )
 from griptape.events import (
     ActionChunkEvent,
+    AudioChunkEvent,
     EventBus,
     FinishPromptEvent,
     StartPromptEvent,
@@ -177,6 +180,8 @@ class BasePromptDriver(SerializableMixin, ExponentialBackoffMixin, ABC):
                     delta_contents[content.index] = [content]
                 if isinstance(content, TextDeltaMessageContent):
                     EventBus.publish_event(TextChunkEvent(token=content.text, index=content.index))
+                elif isinstance(content, AudioDeltaMessageContent) and content.data is not None:
+                    EventBus.publish_event(AudioChunkEvent(data=content.data))
                 elif isinstance(content, ActionCallDeltaMessageContent):
                     EventBus.publish_event(
                         ActionChunkEvent(
@@ -197,10 +202,13 @@ class BasePromptDriver(SerializableMixin, ExponentialBackoffMixin, ABC):
         content = []
         for delta_content in delta_contents:
             text_deltas = [delta for delta in delta_content if isinstance(delta, TextDeltaMessageContent)]
+            audio_deltas = [delta for delta in delta_content if isinstance(delta, AudioDeltaMessageContent)]
             action_deltas = [delta for delta in delta_content if isinstance(delta, ActionCallDeltaMessageContent)]
 
             if text_deltas:
                 content.append(TextMessageContent.from_deltas(text_deltas))
+            if audio_deltas:
+                content.append(AudioMessageContent.from_deltas(audio_deltas))
             if action_deltas:
                 content.append(ActionCallMessageContent.from_deltas(action_deltas))
 

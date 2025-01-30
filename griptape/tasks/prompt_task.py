@@ -8,6 +8,7 @@ from attrs import NOTHING, Attribute, Factory, NothingType, define, field
 
 from griptape import utils
 from griptape.artifacts import ActionArtifact, BaseArtifact, ErrorArtifact, JsonArtifact, ListArtifact, TextArtifact
+from griptape.artifacts.audio_artifact import AudioArtifact
 from griptape.common import PromptStack, ToolAction
 from griptape.configs import Defaults
 from griptape.memory.structure import Run
@@ -31,7 +32,9 @@ logger = logging.getLogger(Defaults.logging_config.logger_name)
 
 @define
 class PromptTask(
-    BaseTask[Union[TextArtifact, JsonArtifact, ListArtifact, ErrorArtifact]], RuleMixin, ActionsSubtaskOriginMixin
+    BaseTask[Union[TextArtifact, AudioArtifact, JsonArtifact, ListArtifact, ErrorArtifact]],
+    RuleMixin,
+    ActionsSubtaskOriginMixin,
 ):
     DEFAULT_MAX_STEPS = 20
     # Stop sequence for chain-of-thought in the framework. Using this "token-like" string to make it more unique,
@@ -176,7 +179,7 @@ class PromptTask(
 
             conversation_memory.add_run(run)
 
-    def try_run(self) -> ListArtifact | TextArtifact | JsonArtifact | ErrorArtifact:
+    def try_run(self) -> ListArtifact | TextArtifact | AudioArtifact | JsonArtifact | ErrorArtifact:
         from griptape.tasks import ActionsSubtask
 
         self.subtasks.clear()
@@ -206,8 +209,10 @@ class PromptTask(
 
             output = subtask.output
 
-        if not isinstance(output, (TextArtifact, JsonArtifact, ErrorArtifact)):
-            raise ValueError(f"Output must be a TextArtifact, JsonArtifact, or ErrorArtifact, not {type(output)}")
+        if not isinstance(output, (AudioArtifact, TextArtifact, JsonArtifact, ErrorArtifact)):
+            raise ValueError(
+                f"Output must be a TextArtifact, AudioArtifact, JsonArtifact, or ErrorArtifact, not {type(output)}"
+            )
 
         if self.output_schema is not None and self.prompt_driver.structured_output_strategy in ("native", "rule"):
             return JsonArtifact(output.value)

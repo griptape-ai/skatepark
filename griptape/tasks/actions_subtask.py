@@ -9,7 +9,15 @@ import schema
 from attrs import define, field
 
 from griptape import utils
-from griptape.artifacts import ActionArtifact, BaseArtifact, ErrorArtifact, JsonArtifact, ListArtifact, TextArtifact
+from griptape.artifacts import (
+    ActionArtifact,
+    AudioArtifact,
+    BaseArtifact,
+    ErrorArtifact,
+    JsonArtifact,
+    ListArtifact,
+    TextArtifact,
+)
 from griptape.common import ToolAction
 from griptape.configs import Defaults
 from griptape.events import EventBus, FinishActionsSubtaskEvent, StartActionsSubtaskEvent
@@ -41,7 +49,7 @@ class ActionsSubtask(BaseTask[Union[ListArtifact, ErrorArtifact]]):
     _origin_task: Optional[BaseTask] = field(default=None, kw_only=True)
 
     @property
-    def input(self) -> TextArtifact | ListArtifact:
+    def input(self) -> TextArtifact | AudioArtifact | ListArtifact:
         return self._process_task_input(self._input)
 
     @input.setter
@@ -212,8 +220,8 @@ class ActionsSubtask(BaseTask[Union[ListArtifact, ErrorArtifact]]):
     def _process_task_input(
         self,
         task_input: Union[str, tuple, list, BaseArtifact, Callable[[BaseTask], BaseArtifact]],
-    ) -> Union[TextArtifact, ListArtifact]:
-        if isinstance(task_input, (TextArtifact, ListArtifact)):
+    ) -> Union[TextArtifact, AudioArtifact, ListArtifact]:
+        if isinstance(task_input, (TextArtifact, AudioArtifact, ListArtifact)):
             return task_input
         elif isinstance(task_input, ActionArtifact):
             return ListArtifact([task_input])
@@ -244,7 +252,7 @@ class ActionsSubtask(BaseTask[Union[ListArtifact, ErrorArtifact]]):
                 # The LLM failed to follow the ReAct prompt, set the LLM's raw response as the output.
                 self.output = TextArtifact(value)
 
-    def __init_from_artifact(self, artifact: TextArtifact | ListArtifact) -> None:
+    def __init_from_artifact(self, artifact: TextArtifact | AudioArtifact | ListArtifact) -> None:
         """Parses the input Artifact to extract either a final answer or thought and actions.
 
         When the input Artifact is a TextArtifact, it is assumed to be the final answer.
@@ -258,7 +266,7 @@ class ActionsSubtask(BaseTask[Union[ListArtifact, ErrorArtifact]]):
             None
         """
         # When using native tools, we can assume that a TextArtifact is the LLM providing its final answer.
-        if isinstance(artifact, TextArtifact):
+        if isinstance(artifact, (TextArtifact, AudioArtifact)):
             self.output = artifact
             return
 
