@@ -5,7 +5,6 @@ import logging
 from typing import TYPE_CHECKING, Any, Optional
 
 from attrs import Factory, define, field
-from schema import Schema
 
 from griptape.artifacts import ActionArtifact, TextArtifact
 from griptape.artifacts.list_artifact import ListArtifact
@@ -112,10 +111,7 @@ class CoherePromptDriver(BasePromptDriver):
         }
 
         if prompt_stack.output_schema is not None and self.structured_output_strategy == "native":
-            params["response_format"] = {
-                "type": "json_object",
-                "schema": prompt_stack.output_schema.json_schema("Output"),
-            }
+            params["response_format"] = {"type": "json_object", "schema": prompt_stack.to_output_json_schema()}
 
         if prompt_stack.tools and self.use_native_tools:
             params["tools"] = self.__to_cohere_tools(prompt_stack.tools)
@@ -207,7 +203,7 @@ class CoherePromptDriver(BasePromptDriver):
                 "function": {
                     "name": tool.to_native_tool_name(activity),
                     "description": tool.activity_description(activity),
-                    "parameters": (tool.activity_schema(activity) or Schema({})).json_schema("Parameters Schema"),
+                    "parameters": tool.to_activity_json_schema(activity, "Parameters Schema"),
                 },
                 "type": "function",
             }

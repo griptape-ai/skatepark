@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import inspect
 from copy import deepcopy
-from typing import Callable, Optional
+from typing import Callable, Optional, Union
 
 from attrs import Attribute, define, field
 from jinja2 import Template
-from schema import Schema
+from pydantic import BaseModel, Field, ValidationError, create_model
+from schema import Schema, SchemaError
+
+from griptape.utils.json_schema_utils import build_strict_schema
 
 
 @define(slots=False)
@@ -84,24 +87,48 @@ class ActivityMixin:
             raise Exception("This method is not an activity.")
         return Template(getattr(activity, "config")["description"]).render({"_self": self})
 
-    def activity_schema(self, activity: Callable) -> Optional[Schema]:
+    def activity_schema(self, activity: Callable) -> Optional[Union[Schema, type[BaseModel]]]:
         if activity is None or not getattr(activity, "is_activity", False):
             raise Exception("This method is not an activity.")
         if getattr(activity, "config")["schema"] is not None:
             config_schema = getattr(activity, "config")["schema"]
-            if isinstance(config_schema, Callable):
-                config_schema = config_schema(self)
-            else:
+            if isinstance(config_schema, Schema):
                 # Need to deepcopy to avoid modifying the original schema
                 config_schema = deepcopy(getattr(activity, "config")["schema"])
+            elif isinstance(config_schema, Callable) and not isinstance(config_schema, type):
+                config_schema = config_schema(self)
             activity_name = self.activity_name(activity)
 
-            if self.extra_schema_properties is not None and activity_name in self.extra_schema_properties:
-                config_schema.schema.update(self.extra_schema_properties[activity_name])
+            if isinstance(config_schema, Schema):
+                if self.extra_schema_properties is not None and activity_name in self.extra_schema_properties:
+                    config_schema.schema.update(self.extra_schema_properties[activity_name])
 
-            return Schema({"values": config_schema})
+                return Schema({"values": config_schema})
+            else:
+                return create_model(config_schema.__name__, values=(config_schema, Field(config_schema)))
         else:
             return None
+
+    def to_activity_json_schema(self, activity: Callable, schema_id: str) -> dict:
+        schema = self.activity_schema(activity)
+        if schema is None:
+            schema = Schema({})
+
+        if isinstance(schema, Schema):
+            json_schema = schema.json_schema(schema_id)
+        else:
+            json_schema = build_strict_schema(schema.model_json_schema(), schema_id)
+
+        return json_schema
+
+    def validate_activity_schema(self, activity_schema: Union[Schema, type[BaseModel]], params: dict) -> None:
+        try:
+            if isinstance(activity_schema, Schema):
+                activity_schema.validate(params)
+            else:
+                activity_schema.model_validate(params)
+        except (SchemaError, ValidationError) as e:
+            raise ValueError(e) from e
 
     def _validate_tool_activity(self, activity_name: str) -> None:
         tool = self.__class__

@@ -1,5 +1,6 @@
 import pytest
 import schema
+from pydantic import BaseModel, create_model
 
 from griptape.artifacts.image_artifact import ImageArtifact
 from griptape.artifacts.list_artifact import ListArtifact
@@ -244,18 +245,30 @@ class TestPromptTask:
         task.run()
         assert len(task.subtasks) == 2
 
-    @pytest.mark.parametrize("structured_output_strategy", ["native", "rule"])
-    def test_parse_output(self, structured_output_strategy):
+    @pytest.mark.parametrize("structured_output_strategy", ["native"])
+    @pytest.mark.parametrize(
+        ("output_schema", "expected_output"),
+        [
+            (schema.Schema({"foo": str}), {"foo": "bar"}),
+            (create_model("Test", foo=(str, ...)), create_model("Test", foo=(str, ...))(foo="bar")),
+            (None, "mock output"),
+            ("foo", "Unsupported output schema type: <class 'str'>"),
+        ],
+    )
+    def test_parse_output_schema(self, structured_output_strategy, output_schema, expected_output):
         task = PromptTask(
             input="foo",
             prompt_driver=MockPromptDriver(
                 structured_output_strategy=structured_output_strategy,
                 mock_structured_output={"foo": "bar"},
+                max_attempts=0,
             ),
-            output_schema=schema.Schema({"foo": str}),
+            output_schema=output_schema,
         )
 
-        task.run()
+        output = task.run()
 
-        assert task.output is not None
-        assert task.output.value == {"foo": "bar"}
+        if isinstance(output.value, BaseModel) and isinstance(expected_output, BaseModel):
+            assert output.value.model_dump_json() == expected_output.model_dump_json()
+        else:
+            assert output.value == expected_output

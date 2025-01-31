@@ -7,7 +7,12 @@ from .command_runner import CommandRunner
 from .chat import Chat
 from .futures import execute_futures_dict, execute_futures_list, execute_futures_list_dict
 from .token_counter import TokenCounter
-from .dict_utils import remove_null_values_in_dict_recursively, dict_merge, remove_key_in_dict_recursively
+from .dict_utils import (
+    remove_null_values_in_dict_recursively,
+    dict_merge,
+    remove_key_in_dict_recursively,
+    add_key_in_dict_recursively,
+)
 from .hash import str_to_hash
 from .import_utils import import_optional_dependency
 from .import_utils import is_dependency_installed
@@ -18,6 +23,7 @@ from .structure_visualizer import StructureVisualizer
 from .reference_utils import references_from_artifacts
 from .file_utils import get_mime_type
 from .contextvars_utils import with_contextvars
+from .json_schema_utils import build_strict_schema, resolve_refs
 
 
 def minify_json(value: str) -> str:
@@ -42,6 +48,7 @@ __all__ = [
     "remove_null_values_in_dict_recursively",
     "dict_merge",
     "remove_key_in_dict_recursively",
+    "add_key_in_dict_recursively",
     "Stream",
     "load_artifact_from_memory",
     "deprecation_warn",
@@ -49,4 +56,6 @@ __all__ = [
     "references_from_artifacts",
     "get_mime_type",
     "with_contextvars",
+    "build_strict_schema",
+    "resolve_refs",
 ]

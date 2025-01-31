@@ -5,9 +5,19 @@ import logging
 from typing import TYPE_CHECKING, Callable, Optional, Union
 
 from attrs import NOTHING, Attribute, Factory, NothingType, define, field
+from pydantic import BaseModel, TypeAdapter
+from schema import Schema
 
 from griptape import utils
-from griptape.artifacts import ActionArtifact, BaseArtifact, ErrorArtifact, JsonArtifact, ListArtifact, TextArtifact
+from griptape.artifacts import (
+    ActionArtifact,
+    BaseArtifact,
+    ErrorArtifact,
+    GenericArtifact,
+    JsonArtifact,
+    ListArtifact,
+    TextArtifact,
+)
 from griptape.common import PromptStack, ToolAction
 from griptape.configs import Defaults
 from griptape.memory.structure import Run
@@ -18,8 +28,6 @@ from griptape.tasks import ActionsSubtask, BaseTask
 from griptape.utils import J2
 
 if TYPE_CHECKING:
-    from schema import Schema
-
     from griptape.drivers.prompt import BasePromptDriver
     from griptape.memory import TaskMemory
     from griptape.memory.structure.base_conversation_memory import BaseConversationMemory
@@ -31,7 +39,9 @@ logger = logging.getLogger(Defaults.logging_config.logger_name)
 
 @define
 class PromptTask(
-    BaseTask[Union[TextArtifact, JsonArtifact, ListArtifact, ErrorArtifact]], RuleMixin, ActionsSubtaskOriginMixin
+    BaseTask[Union[TextArtifact, JsonArtifact, GenericArtifact, ListArtifact, ErrorArtifact]],
+    RuleMixin,
+    ActionsSubtaskOriginMixin,
 ):
     DEFAULT_MAX_STEPS = 20
     # Stop sequence for chain-of-thought in the framework. Using this "token-like" string to make it more unique,
@@ -40,7 +50,7 @@ class PromptTask(
     prompt_driver: BasePromptDriver = field(
         default=Factory(lambda: Defaults.drivers_config.prompt_driver), kw_only=True, metadata={"serializable": True}
     )
-    output_schema: Optional[Schema] = field(default=None, kw_only=True)
+    output_schema: Optional[Union[Schema, type[BaseModel]]] = field(default=None, kw_only=True)
     generate_system_template: Callable[[PromptTask], str] = field(
         default=Factory(lambda self: self.default_generate_system_template, takes_self=True),
         kw_only=True,
@@ -176,7 +186,7 @@ class PromptTask(
 
             conversation_memory.add_run(run)
 
-    def try_run(self) -> ListArtifact | TextArtifact | JsonArtifact | ErrorArtifact:
+    def try_run(self) -> ListArtifact | TextArtifact | JsonArtifact | GenericArtifact | ErrorArtifact:
         from griptape.tasks import ActionsSubtask
 
         self.subtasks.clear()
@@ -206,13 +216,19 @@ class PromptTask(
 
             output = subtask.output
 
-        if not isinstance(output, (TextArtifact, JsonArtifact, ErrorArtifact)):
-            raise ValueError(f"Output must be a TextArtifact, JsonArtifact, or ErrorArtifact, not {type(output)}")
-
+        # With `native` or `rule` strategies, the output will be a json string that can be parsed.
+        # With the `tool` strategy, the output will already be a `JsonArtifact`.
         if self.output_schema is not None and self.prompt_driver.structured_output_strategy in ("native", "rule"):
-            return JsonArtifact(output.value)
-        else:
+            if isinstance(self.output_schema, Schema):
+                return JsonArtifact(output.value)
+            elif isinstance(self.output_schema, type) and issubclass(self.output_schema, BaseModel):
+                return GenericArtifact(TypeAdapter(self.output_schema).validate_json(output.value))
+            else:
+                raise ValueError(f"Unsupported output schema type: {type(self.output_schema)}")
+        elif isinstance(output, (TextArtifact, JsonArtifact, ErrorArtifact)):
             return output
+        else:
+            raise ValueError(f"Unsupported output type: {type(output)}")
 
     def preprocess(self, structure: Structure) -> BaseTask:
         super().preprocess(structure)

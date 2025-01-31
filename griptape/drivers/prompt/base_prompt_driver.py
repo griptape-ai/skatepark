@@ -138,7 +138,7 @@ class BasePromptDriver(SerializableMixin, ExponentialBackoffMixin, ABC):
                 if structured_output_tool not in prompt_stack.tools:
                     prompt_stack.tools.append(structured_output_tool)
             elif self.structured_output_strategy == "rule":
-                output_artifact = TextArtifact(JsonSchemaRule(output_schema.json_schema("Output Schema")).to_text())
+                output_artifact = TextArtifact(JsonSchemaRule(prompt_stack.to_output_json_schema()).to_text())
                 system_messages = prompt_stack.system_messages
                 if system_messages:
                     last_system_message = prompt_stack.system_messages[-1]

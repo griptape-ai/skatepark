@@ -155,6 +155,7 @@ class BaseSchema(Schema):
         from collections.abc import Sequence
         from typing import Any
 
+        from pydantic import BaseModel
         from schema import Schema
 
         from griptape.artifacts import BaseArtifact, TextArtifact
@@ -241,6 +242,7 @@ class BaseSchema(Schema):
                 else Any,
                 "voyageai": import_optional_dependency("voyageai") if is_dependency_installed("voyageai") else Any,
                 "Schema": Schema,
+                "BaseModel": BaseModel,
             },
         )
 

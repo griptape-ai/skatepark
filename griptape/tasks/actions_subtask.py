@@ -5,7 +5,6 @@ import logging
 import re
 from typing import TYPE_CHECKING, Callable, Optional, Union
 
-import schema
 from attrs import define, field
 
 from griptape import utils
@@ -330,25 +329,24 @@ class ActionsSubtask(BaseTask[Union[ListArtifact, ErrorArtifact]]):
         return action
 
     def __validate_action(self, action: ToolAction) -> None:
+        if action.tool is None:
+            return
+
+        if action.path is None:
+            raise Exception("ToolAction path not found.")
+        activity = getattr(action.tool, action.path)
+
+        if activity is None:
+            raise Exception("Activity not found.")
+
+        activity_schema = action.tool.activity_schema(activity)
+
+        if activity_schema is None or action.input is None:
+            return
+
         try:
-            if action.tool is not None:
-                if action.path is not None:
-                    activity = getattr(action.tool, action.path)
-                else:
-                    raise Exception("ToolAction path not found.")
-
-                if activity is not None:
-                    activity_schema = action.tool.activity_schema(activity)
-                else:
-                    raise Exception("Activity not found.")
-
-                if activity_schema is not None and action.input is not None:
-                    activity_schema.validate(action.input)
-        except schema.SchemaError as e:
+            action.tool.validate_activity_schema(activity_schema, action.input)
+        except ValueError as e:
             logger.debug("Subtask %s\nInvalid action JSON: %s", self.origin_task.id, e)
 
             action.output = ErrorArtifact(f"Activity input JSON validation error: {e}", exception=e)
-        except SyntaxError as e:
-            logger.debug("Subtask %s\nSyntax error: %s", self.origin_task.id, e)
-
-            action.output = ErrorArtifact(f"Syntax error: {e}", exception=e)

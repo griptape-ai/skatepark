@@ -118,7 +118,7 @@ class OllamaPromptDriver(BasePromptDriver):
         }
 
         if prompt_stack.output_schema is not None and self.structured_output_strategy == "native":
-            params["format"] = prompt_stack.output_schema.json_schema("Output")
+            params["format"] = prompt_stack.to_output_json_schema()
 
         # Tool calling is only supported when not streaming
         if prompt_stack.tools and self.use_native_tools:
@@ -202,7 +202,7 @@ class OllamaPromptDriver(BasePromptDriver):
 
                 activity_schema = tool.activity_schema(activity)
                 if activity_schema is not None:
-                    ollama_tool["function"]["parameters"] = activity_schema.json_schema("Parameters Schema")[
+                    ollama_tool["function"]["parameters"] = tool.to_activity_json_schema(activity, "Parameters Schema")[
                         "properties"
                     ]["values"]
 

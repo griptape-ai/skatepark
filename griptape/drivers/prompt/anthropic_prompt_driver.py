@@ -4,7 +4,6 @@ import logging
 from typing import TYPE_CHECKING, Optional
 
 from attrs import Attribute, Factory, define, field
-from schema import Schema
 
 from griptape.artifacts import (
     ActionArtifact,
@@ -160,7 +159,7 @@ class AnthropicPromptDriver(BasePromptDriver):
             {
                 "name": tool.to_native_tool_name(activity),
                 "description": tool.activity_description(activity),
-                "input_schema": (tool.activity_schema(activity) or Schema({})).json_schema("Input Schema"),
+                "input_schema": tool.to_activity_json_schema(activity, "Input Schema"),
             }
             for tool in tools
             for activity in tool.activities()

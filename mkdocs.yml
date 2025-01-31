@@ -68,7 +68,8 @@ markdown_extensions:
   - pymdownx.snippets
   - pymdownx.superfences
   - pymdownx.details
-  - pymdownx.tabbed
+  - pymdownx.tabbed:
+      alternate_style: true
   - tables
   - def_list
   - footnotes
